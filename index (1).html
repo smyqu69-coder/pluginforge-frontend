@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PluginForge AI — Generator Pluginów Minecraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050508;
+  --bg2: #0d0d14;
+  --bg3: #13131f;
+  --border: rgba(120,90,255,0.18);
+  --border2: rgba(120,90,255,0.35);
+  --purple: #7c5aff;
+  --purple-bright: #9b7eff;
+  --purple-dim: rgba(124,90,255,0.12);
+  --green: #00ffaa;
+  --green-dim: rgba(0,255,170,0.1);
+  --red: #ff4d6d;
+  --text: #e8e4ff;
+  --text2: rgba(232,228,255,0.6);
+  --text3: rgba(232,228,255,0.35);
+  --font-head: 'Syne', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-ui: 'Space Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-head);
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  position: relative;
+}
+/* BG grid */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: linear-gradient(rgba(124,90,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,90,255,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+/* Glow orbs */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+}
+.orb1 { width:600px;height:600px;background:rgba(124,90,255,0.07);top:-200px;left:-200px; }
+.orb2 { width:500px;height:500px;background:rgba(0,255,170,0.04);bottom:-100px;right:-100px; }
+.orb3 { width:400px;height:400px;background:rgba(124,90,255,0.05);top:50%;left:50%;transform:translate(-50%,-50%); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--purple); border-radius:3px; }
+
+/* ============== HEADER ============== */
+.header {
+  position: fixed; top:0; left:0; right:0; z-index:1000;
+  background: rgba(5,5,8,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 3rem;
+  height: 70px;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: all 0.3s;
+}
+.header.scrolled {
+  background: rgba(5,5,8,0.97);
+  box-shadow: 0 0 40px rgba(124,90,255,0.1);
+}
+.logo-wrap { display:flex;align-items:center;gap:0.8rem;cursor:pointer; }
+.logo-mark {
+  width:36px;height:36px;
+  background: linear-gradient(135deg, var(--purple), var(--green));
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-weight:700;font-size:1rem;color:#fff;
+  box-shadow: 0 0 20px rgba(124,90,255,0.4);
+}
+.logo-text {
+  font-size:1.25rem;font-weight:800;letter-spacing:-0.5px;
+  color:var(--text);
+}
+.logo-text span { color:var(--purple-bright); }
+.nav-links { display:flex;gap:2rem; }
+.nav-links a {
+  font-family:var(--font-mono);font-size:0.75rem;letter-spacing:1px;
+  color:var(--text2);text-decoration:none;cursor:pointer;
+  transition:color 0.2s;text-transform:uppercase;
+}
+.nav-links a:hover { color:var(--purple-bright); }
+.header-actions { display:flex;gap:1rem;align-items:center; }
+.btn {
+  font-family:var(--font-mono);font-size:0.8rem;letter-spacing:1px;
+  padding:0.6rem 1.4rem;border-radius:6px;border:none;cursor:pointer;
+  transition:all 0.25s;font-weight:700;text-transform:uppercase;
+  text-decoration:none;display:inline-flex;align-items:center;gap:0.5rem;
+}
+.btn-outline {
+  background:transparent;border:1px solid var(--border2);color:var(--purple-bright);
+}
+.btn-outline:hover { background:var(--purple-dim);border-color:var(--purple); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--purple), #5a3dcc);
+  color:#fff;box-shadow:0 0 25px rgba(124,90,255,0.35);
+}
+.btn-primary:hover { transform:translateY(-2px);box-shadow:0 0 40px rgba(124,90,255,0.55); }
+.btn-green {
+  background: linear-gradient(135deg, #00bb77, #009966);
+  color:#000;font-weight:800;box-shadow:0 0 20px rgba(0,255,170,0.3);
+}
+.btn-green:hover { transform:translateY(-2px);box-shadow:0 0 35px rgba(0,255,170,0.5); }
+.btn-danger {
+  background:rgba(255,77,109,0.15);border:1px solid rgba(255,77,109,0.3);color:var(--red);
+}
+.btn-danger:hover { background:rgba(255,77,109,0.25); }
+
+/* ============== HERO ============== */
+.hero {
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:100px 3rem 3rem;
+  position:relative;z-index:1;text-align:center;
+}
+.hero-badge {
+  display:inline-flex;align-items:center;gap:0.5rem;
+  background:rgba(124,90,255,0.1);border:1px solid var(--border2);
+  border-radius:50px;padding:0.4rem 1rem;
+  font-family:var(--font-mono);font-size:0.72rem;letter-spacing:2px;
+  color:var(--purple-bright);text-transform:uppercase;margin-bottom:2rem;
+  animation:fadeDown 0.6s ease both;
+}
+.hero-badge-dot {
+  width:6px;height:6px;background:var(--green);border-radius:50%;
+  box-shadow:0 0 8px var(--green);animation:pulseDot 2s infinite;
+}
+@keyframes pulseDot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+@keyframes fadeDown { from{opacity:0;transform:translateY(-20px);} to{opacity:1;transform:none;} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(30px);} to{opacity:1;transform:none;} }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+
+.hero-title {
+  font-size:clamp(3rem,8vw,7rem);font-weight:800;line-height:0.95;
+  letter-spacing:-3px;margin-bottom:1.5rem;
+  animation:fadeUp 0.7s 0.1s ease both;
+}
+.hero-title .line1 { display:block;color:var(--text); }
+.hero-title .line2 {
+  display:block;
+  background:linear-gradient(135deg, var(--purple-bright), var(--green));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-sub {
+  max-width:600px;font-size:1.15rem;line-height:1.7;
+  color:var(--text2);margin:0 auto 3rem;
+  animation:fadeUp 0.7s 0.2s ease both;
+  font-weight:400;
+}
+.hero-actions {
+  display:flex;gap:1.2rem;justify-content:center;flex-wrap:wrap;
+  animation:fadeUp 0.7s 0.3s ease both;margin-bottom:4rem;
+}
+.btn-lg { padding:0.9rem 2.2rem;font-size:0.9rem; }
+.hero-stats {
+  display:flex;gap:4rem;justify-content:center;
+  animation:fadeIn 1s 0.5s ease both;opacity:0;
+  animation-fill-mode:both;
+}
+.stat { text-align:center; }
+.stat-num {
+  font-size:2.5rem;font-weight:800;color:var(--purple-bright);
+  font-family:var(--font-mono);line-height:1;
+}
+.stat-label { font-size:0.75rem;color:var(--text3);letter-spacing:1px;margin-top:0.3rem;font-family:var(--font-mono); }
+
+/* ============== FEATURES ============== */
+.section {
+  padding:6rem 3rem;max-width:1400px;margin:0 auto;position:relative;z-index:1;
+}
+.section-label {
+  font-family:var(--font-mono);font-size:0.72rem;letter-spacing:3px;
+  color:var(--purple-bright);text-transform:uppercase;margin-bottom:1rem;
+  display:flex;align-items:center;gap:0.8rem;
+}
+.section-label::before {
+  content:'';width:30px;height:1px;background:var(--purple);
+}
+.section-title {
+  font-size:clamp(2rem,4vw,3.5rem);font-weight:800;letter-spacing:-2px;
+  margin-bottom:1rem;line-height:1.1;
+}
+.section-title em { font-style:normal;color:var(--purple-bright); }
+.section-sub { color:var(--text2);font-size:1.05rem;max-width:500px; }
+.features-grid {
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;
+  margin-top:4rem;
+}
+.feature-card {
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:16px;padding:2.5rem;
+  transition:all 0.35s;position:relative;overflow:hidden;
+}
+.feature-card::before {
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg, var(--purple-dim), transparent);
+  opacity:0;transition:opacity 0.3s;pointer-events:none;
+}
+.feature-card:hover { transform:translateY(-8px);border-color:var(--border2);box-shadow:0 30px 60px rgba(0,0,0,0.4),0 0 40px rgba(124,90,255,0.15); }
+.feature-card:hover::before { opacity:1; }
+.feature-icon {
+  width:52px;height:52px;border-radius:12px;
+  background:var(--purple-dim);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;margin-bottom:1.5rem;
+}
+.feature-card h3 { font-size:1.25rem;font-weight:700;margin-bottom:0.8rem; }
+.feature-card p { color:var(--text2);line-height:1.7;font-size:0.95rem; }
+
+/* ============== MAIN APP ============== */
+#app-section {
+  padding:4rem 3rem;
+  position:relative;z-index:1;
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+}
+.app-container {
+  max-width:1400px;margin:0 auto;
+}
+.app-header {
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:2rem;flex-wrap:wrap;gap:1rem;
+}
+.app-tabs {
+  display:flex;gap:0.5rem;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:0.3rem;
+}
+.app-tab {
+  padding:0.6rem 1.5rem;border-radius:7px;font-family:var(--font-mono);
+  font-size:0.78rem;letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;transition:all 0.2s;border:none;background:transparent;
+  color:var(--text2);font-weight:700;
+}
+.app-tab.active {
+  background:var(--purple);color:#fff;
+  box-shadow:0 0 20px rgba(124,90,255,0.4);
+}
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* --- GENERATOR --- */
+.generator-layout {
+  display:grid;grid-template-columns:1fr 1fr;gap:2rem;min-height:70vh;
+}
+.gen-panel {
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:16px;display:flex;flex-direction:column;overflow:hidden;
+}
+.panel-header {
+  padding:1rem 1.5rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:0.8rem;
+  background:rgba(124,90,255,0.05);
+}
+.panel-header-dot { width:8px;height:8px;border-radius:50%; }
+.dot-red { background:#ff5f57; }
+.dot-yellow { background:#ffbd2e; }
+.dot-green { background:#28ca41; }
+.panel-title {
+  font-family:var(--font-mono);font-size:0.8rem;letter-spacing:1px;
+  color:var(--text2);text-transform:uppercase;margin-left:0.5rem;
+}
+.panel-body { flex:1;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;overflow-y:auto; }
+
+.form-group { display:flex;flex-direction:column;gap:0.5rem; }
+.form-label {
+  font-family:var(--font-mono);font-size:0.72rem;letter-spacing:1px;
+  text-transform:uppercase;color:var(--purple-bright);
+}
+.form-input, .form-select, .form-textarea {
+  background:rgba(5,5,8,0.8);border:1px solid var(--border);
+  border-radius:8px;padding:0.75rem 1rem;font-family:var(--font-mono);
+  font-size:0.88rem;color:var(--text);transition:all 0.2s;
+  outline:none;resize:vertical;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color:var(--purple);box-shadow:0 0 0 3px rgba(124,90,255,0.15);
+}
+.form-textarea { min-height:140px;line-height:1.6; }
+.form-select option { background:var(--bg2); }
+.tags-container { display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem; }
+.tag {
+  padding:0.3rem 0.8rem;background:var(--purple-dim);border:1px solid var(--border2);
+  border-radius:20px;font-family:var(--font-mono);font-size:0.72rem;color:var(--purple-bright);
+  cursor:pointer;transition:all 0.2s;letter-spacing:0.5px;
+}
+.tag:hover, .tag.selected {
+  background:var(--purple);color:#fff;border-color:var(--purple);
+  box-shadow:0 0 12px rgba(124,90,255,0.3);
+}
+.advanced-toggle {
+  font-family:var(--font-mono);font-size:0.75rem;color:var(--text3);
+  cursor:pointer;display:flex;align-items:center;gap:0.5rem;
+  transition:color 0.2s;margin-top:0.5rem;
+}
+.advanced-toggle:hover { color:var(--purple-bright); }
+.advanced-section { display:none;flex-direction:column;gap:1rem; }
+.advanced-section.open { display:flex; }
+.generate-btn-wrap { padding:1rem 1.5rem;border-top:1px solid var(--border); }
+.generate-btn {
+  width:100%;padding:1rem;font-size:0.9rem;font-family:var(--font-mono);
+  font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  background:linear-gradient(135deg, var(--purple), #5a3dcc);
+  color:#fff;border:none;border-radius:10px;cursor:pointer;
+  transition:all 0.3s;position:relative;overflow:hidden;
+  box-shadow:0 0 30px rgba(124,90,255,0.3);
+}
+.generate-btn::before {
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transition:left 0.5s;
+}
+.generate-btn:hover::before { left:100%; }
+.generate-btn:hover { box-shadow:0 0 50px rgba(124,90,255,0.6);transform:translateY(-2px); }
+.generate-btn:disabled { opacity:0.5;cursor:not-allowed;transform:none; }
+.generate-btn.loading { animation:btnPulse 1s infinite; }
+@keyframes btnPulse { 0%,100%{box-shadow:0 0 30px rgba(124,90,255,0.3);} 50%{box-shadow:0 0 60px rgba(124,90,255,0.7);} }
+
+/* Output panel */
+.output-area {
+  flex:1;font-family:var(--font-mono);font-size:0.82rem;line-height:1.7;
+  color:var(--text);white-space:pre-wrap;word-break:break-word;
+  overflow-y:auto;padding:0.5rem;min-height:200px;
+}
+.output-placeholder {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;color:var(--text3);gap:1rem;text-align:center;
+}
+.output-placeholder-icon { font-size:3rem;opacity:0.3; }
+.output-placeholder-text { font-family:var(--font-mono);font-size:0.85rem;letter-spacing:0.5px; }
+.code-block {
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:1.5rem;font-family:var(--font-mono);font-size:0.82rem;
+  line-height:1.7;color:#a8d8a8;overflow-x:auto;flex:1;
+  position:relative;
+}
+/* Syntax highlight */
+.kw { color:#9b7eff; }
+.cm { color:#555; }
+.str { color:#e8a87c; }
+.cls { color:#7dd6e8; }
+.ann { color:#c8a2c8; }
+.num { color:#e8d87c; }
+
+.output-actions {
+  display:flex;gap:0.7rem;padding:1rem 1.5rem;border-top:1px solid var(--border);flex-wrap:wrap;
+}
+.token-counter {
+  font-family:var(--font-mono);font-size:0.72rem;color:var(--text3);
+  padding:0.5rem 1rem;background:var(--bg);border:1px solid var(--border);
+  border-radius:6px;margin-left:auto;display:flex;align-items:center;gap:0.5rem;
+}
+.token-val { color:var(--purple-bright); }
+
+/* Progress / streaming */
+.stream-cursor {
+  display:inline-block;width:2px;height:1em;background:var(--green);
+  margin-left:2px;animation:blink 0.8s step-end infinite;vertical-align:text-bottom;
+}
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+.progress-bar {
+  height:3px;background:var(--border);border-radius:0;overflow:hidden;
+}
+.progress-fill {
+  height:100%;background:linear-gradient(90deg, var(--purple), var(--green));
+  width:0%;transition:width 0.5s;
+  box-shadow:0 0 10px rgba(124,90,255,0.5);
+}
+.status-bar {
+  padding:0.6rem 1.5rem;background:rgba(5,5,8,0.5);
+  font-family:var(--font-mono);font-size:0.72rem;color:var(--text3);
+  display:flex;align-items:center;gap:0.8rem;
+  border-top:1px solid var(--border);
+}
+.status-indicator {
+  width:6px;height:6px;border-radius:50%;background:var(--text3);
+}
+.status-indicator.active { background:var(--green);box-shadow:0 0 8px var(--green);animation:pulseDot 1s infinite; }
+.status-indicator.error { background:var(--red); }
+
+/* --- CHAT --- */
+.chat-layout { display:grid;grid-template-columns:260px 1fr;gap:1.5rem;height:75vh; }
+.chat-sidebar {
+  background:var(--bg3);border:1px solid var(--border);border-radius:16px;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sidebar-header { padding:1rem;border-bottom:1px solid var(--border); }
+.sidebar-search {
+  width:100%;padding:0.6rem 0.8rem;background:var(--bg);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);font-family:var(--font-mono);font-size:0.8rem;
+  outline:none;
+}
+.sidebar-search:focus { border-color:var(--purple); }
+.chat-list { flex:1;overflow-y:auto;padding:0.5rem; }
+.chat-item {
+  padding:0.8rem 1rem;border-radius:10px;cursor:pointer;
+  transition:all 0.2s;margin-bottom:0.3rem;position:relative;
+  border:1px solid transparent;
+}
+.chat-item:hover { background:var(--purple-dim);border-color:var(--border); }
+.chat-item.active { background:var(--purple-dim);border-color:var(--border2); }
+.chat-item-title {
+  font-size:0.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-bottom:0.2rem;
+}
+.chat-item-meta { font-family:var(--font-mono);font-size:0.68rem;color:var(--text3); }
+.chat-item-del {
+  position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);
+  opacity:0;transition:opacity 0.2s;background:none;border:none;color:var(--red);
+  cursor:pointer;font-size:0.9rem;padding:0.2rem;
+}
+.chat-item:hover .chat-item-del { opacity:1; }
+.sidebar-footer { padding:1rem;border-top:1px solid var(--border); }
+.new-chat-btn {
+  width:100%;padding:0.7rem;background:var(--purple-dim);border:1px solid var(--border2);
+  border-radius:8px;color:var(--purple-bright);font-family:var(--font-mono);
+  font-size:0.78rem;font-weight:700;letter-spacing:1px;cursor:pointer;
+  transition:all 0.2s;text-transform:uppercase;
+}
+.new-chat-btn:hover { background:var(--purple);color:#fff;border-color:var(--purple); }
+
+/* Chat window */
+.chat-window {
+  background:var(--bg3);border:1px solid var(--border);border-radius:16px;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.chat-toolbar {
+  padding:1rem 1.5rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;
+  background:rgba(124,90,255,0.03);
+}
+.chat-mode-select {
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-family:var(--font-mono);font-size:0.78rem;
+  padding:0.5rem 0.8rem;outline:none;cursor:pointer;
+}
+.chat-mode-select:focus { border-color:var(--purple); }
+.chat-messages {
+  flex:1;overflow-y:auto;padding:1.5rem;
+  display:flex;flex-direction:column;gap:1.5rem;
+}
+.msg { display:flex;gap:1rem;animation:msgIn 0.3s ease; }
+@keyframes msgIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:none;} }
+.msg-avatar {
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;
+  font-weight:700;font-family:var(--font-mono);font-size:0.75rem;
+}
+.msg-avatar.ai { background:linear-gradient(135deg, var(--purple), #5a3dcc);color:#fff; }
+.msg-avatar.user { background:linear-gradient(135deg, #1a1a2e, #2a2a4e);border:1px solid var(--border2);color:var(--purple-bright); }
+.msg-body { flex:1;min-width:0; }
+.msg-name {
+  font-family:var(--font-mono);font-size:0.7rem;letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:0.5rem;
+}
+.msg-name.ai-name { color:var(--purple-bright); }
+.msg-name.user-name { color:var(--text3); }
+.msg-text {
+  font-size:0.92rem;line-height:1.75;color:var(--text);
+  white-space:pre-wrap;word-break:break-word;
+}
+.msg-text code {
+  background:var(--bg);border:1px solid var(--border);border-radius:4px;
+  padding:0.15em 0.4em;font-family:var(--font-mono);font-size:0.85em;color:var(--green);
+}
+.msg-text pre {
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:1rem;overflow-x:auto;margin:0.8rem 0;
+}
+.msg-text pre code { background:none;border:none;padding:0;color:#a8d8a8; }
+.msg-actions { margin-top:0.8rem;display:flex;gap:0.5rem; }
+.msg-action-btn {
+  font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.5px;
+  padding:0.3rem 0.8rem;border-radius:6px;background:var(--purple-dim);
+  border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all 0.2s;
+}
+.msg-action-btn:hover { background:var(--purple);color:#fff;border-color:var(--purple); }
+.chat-input-wrap {
+  padding:1rem 1.5rem;border-top:1px solid var(--border);
+  background:rgba(5,5,8,0.3);
+}
+.chat-input-row { display:flex;gap:0.8rem;align-items:flex-end; }
+.chat-input {
+  flex:1;background:var(--bg);border:1px solid var(--border);border-radius:12px;
+  padding:0.9rem 1.2rem;font-family:var(--font-head);font-size:0.92rem;
+  color:var(--text);outline:none;resize:none;min-height:50px;max-height:200px;
+  transition:border-color 0.2s;line-height:1.5;
+}
+.chat-input:focus { border-color:var(--purple);box-shadow:0 0 0 3px rgba(124,90,255,0.1); }
+.chat-send-btn {
+  width:46px;height:46px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg, var(--purple), #5a3dcc);
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:1.1rem;transition:all 0.2s;
+  box-shadow:0 0 20px rgba(124,90,255,0.35);
+}
+.chat-send-btn:hover { transform:translateY(-2px);box-shadow:0 0 35px rgba(124,90,255,0.55); }
+.chat-send-btn:disabled { opacity:0.5;cursor:not-allowed;transform:none; }
+.chat-hint { font-family:var(--font-mono);font-size:0.68rem;color:var(--text3);margin-top:0.5rem;text-align:right; }
+
+/* --- HISTORY / DOWNLOADS --- */
+.history-grid {
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem;
+}
+.history-card {
+  background:var(--bg3);border:1px solid var(--border);border-radius:16px;
+  padding:1.5rem;transition:all 0.3s;
+}
+.history-card:hover { border-color:var(--border2);box-shadow:0 10px 30px rgba(0,0,0,0.4); }
+.history-card-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem; }
+.history-card-title { font-size:1rem;font-weight:700; }
+.history-card-tag {
+  font-family:var(--font-mono);font-size:0.68rem;letter-spacing:1px;padding:0.25rem 0.7rem;
+  border-radius:20px;background:var(--purple-dim);border:1px solid var(--border2);color:var(--purple-bright);
+}
+.history-card-meta { font-family:var(--font-mono);font-size:0.72rem;color:var(--text3);margin-bottom:1rem; }
+.history-card-actions { display:flex;gap:0.5rem; }
+.empty-state {
+  text-align:center;padding:4rem;color:var(--text3);
+  grid-column:1/-1;
+}
+.empty-state-icon { font-size:3rem;margin-bottom:1rem;opacity:0.3; }
+.empty-state-text { font-family:var(--font-mono);font-size:0.85rem;letter-spacing:0.5px; }
+
+/* --- CONFIG MODAL --- */
+.modal-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,0.85);
+  z-index:9000;display:flex;align-items:center;justify-content:center;
+  padding:2rem;backdrop-filter:blur(8px);
+  opacity:0;visibility:hidden;transition:all 0.3s;
+}
+.modal-overlay.open { opacity:1;visibility:visible; }
+.modal-box {
+  background:var(--bg2);border:1px solid var(--border2);border-radius:20px;
+  padding:2.5rem;max-width:550px;width:100%;
+  box-shadow:0 30px 80px rgba(0,0,0,0.8),0 0 60px rgba(124,90,255,0.1);
+  transform:scale(0.95);transition:transform 0.3s;
+}
+.modal-overlay.open .modal-box { transform:scale(1); }
+.modal-title {
+  font-size:1.5rem;font-weight:800;margin-bottom:0.5rem;letter-spacing:-0.5px;
+}
+.modal-sub { color:var(--text2);font-size:0.9rem;margin-bottom:2rem; }
+.modal-close-btn {
+  position:absolute;doesn't work;
+}
+.modal-actions { display:flex;gap:0.8rem;margin-top:2rem;justify-content:flex-end; }
+.api-key-display {
+  font-family:var(--font-mono);font-size:0.8rem;letter-spacing:2px;
+  color:var(--green);background:var(--green-dim);border:1px solid rgba(0,255,170,0.2);
+  padding:0.5rem 1rem;border-radius:8px;margin-top:0.8rem;
+  display:flex;align-items:center;gap:0.5rem;
+}
+.api-key-dot { width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green); }
+
+/* --- PRICING (optional section) --- */
+.pricing-grid {
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2rem;
+  margin-top:4rem;
+}
+.price-card {
+  background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2.5rem;
+  transition:all 0.35s;position:relative;overflow:hidden;
+}
+.price-card.featured {
+  border-color:var(--purple);
+  box-shadow:0 0 50px rgba(124,90,255,0.2);
+}
+.price-card.featured::before {
+  content:'POPULARNY';position:absolute;top:1.5rem;right:-2rem;
+  background:var(--purple);color:#fff;font-family:var(--font-mono);font-size:0.65rem;
+  letter-spacing:2px;padding:0.3rem 3rem;transform:rotate(30deg);
+  box-shadow:0 0 20px rgba(124,90,255,0.4);
+}
+.price-card:hover { transform:translateY(-8px); }
+.price-tier { font-family:var(--font-mono);font-size:0.72rem;letter-spacing:2px;color:var(--purple-bright);text-transform:uppercase;margin-bottom:1rem; }
+.price-amount { font-size:3rem;font-weight:800;letter-spacing:-2px;margin-bottom:0.2rem; }
+.price-period { color:var(--text3);font-size:0.85rem;font-family:var(--font-mono); }
+.price-features { list-style:none;margin:2rem 0;display:flex;flex-direction:column;gap:0.8rem; }
+.price-feature { display:flex;gap:0.8rem;align-items:flex-start;font-size:0.9rem;color:var(--text2); }
+.price-feature::before { content:'✓';color:var(--green);font-weight:700;flex-shrink:0; }
+
+/* ---- FOOTER ---- */
+.footer {
+  background:var(--bg2);border-top:1px solid var(--border);
+  padding:4rem 3rem 2rem;position:relative;z-index:1;
+}
+.footer-inner { max-width:1400px;margin:0 auto; }
+.footer-grid { display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:4rem;margin-bottom:3rem; }
+.footer-brand h3 { font-size:1.5rem;font-weight:800;margin-bottom:0.5rem;letter-spacing:-0.5px; }
+.footer-brand p { color:var(--text2);font-size:0.9rem;line-height:1.7;max-width:280px; }
+.footer-col h4 { font-family:var(--font-mono);font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--purple-bright);margin-bottom:1.2rem; }
+.footer-col ul { list-style:none;display:flex;flex-direction:column;gap:0.6rem; }
+.footer-col a { color:var(--text2);text-decoration:none;font-size:0.88rem;transition:color 0.2s;cursor:pointer; }
+.footer-col a:hover { color:var(--purple-bright); }
+.footer-bottom {
+  border-top:1px solid var(--border);padding-top:2rem;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;
+}
+.footer-copy { font-family:var(--font-mono);font-size:0.72rem;color:var(--text3); }
+
+/* ============== TOAST ============== */
+.toast-container { position:fixed;bottom:2rem;right:2rem;z-index:9999;display:flex;flex-direction:column;gap:0.7rem; }
+.toast {
+  background:var(--bg2);border:1px solid var(--border2);border-radius:10px;
+  padding:1rem 1.5rem;font-family:var(--font-mono);font-size:0.8rem;
+  display:flex;align-items:center;gap:0.8rem;
+  box-shadow:0 10px 40px rgba(0,0,0,0.5);
+  animation:toastIn 0.3s ease;
+}
+.toast.success { border-color:rgba(0,255,170,0.3);color:var(--green); }
+.toast.error { border-color:rgba(255,77,109,0.3);color:var(--red); }
+@keyframes toastIn { from{opacity:0;transform:translateX(30px);} to{opacity:1;transform:none;} }
+
+/* ============== RESPONSIVE ============== */
+@media(max-width:1000px) {
+  .generator-layout { grid-template-columns:1fr;min-height:auto; }
+  .chat-layout { grid-template-columns:1fr;height:auto; }
+  .chat-sidebar { display:none; }
+  .footer-grid { grid-template-columns:1fr 1fr; }
+}
+@media(max-width:768px) {
+  .header { padding:0 1.5rem; }
+  .nav-links { display:none; }
+  .hero { padding:100px 1.5rem 3rem; }
+  .hero-stats { gap:2rem; }
+  .section { padding:4rem 1.5rem; }
+  #app-section { padding:3rem 1.5rem; }
+  .footer { padding:3rem 1.5rem 2rem; }
+  .footer-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- BG Orbs -->
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal-box" style="max-width:460px;">
+    <div class="modal-title" id="loginModalTitle">👤 Zaloguj się</div>
+    <div class="modal-sub" id="loginModalSub">Zaloguj się żeby generować pluginy i śledzić swoje limity.</div>
+
+    <div id="loginForm">
+      <div class="form-group" style="margin-top:1rem;">
+        <div class="form-label">Email</div>
+        <input type="email" class="form-input" id="loginEmail" placeholder="twoj@email.com" autocomplete="email">
+      </div>
+      <div class="form-group" style="margin-top:1rem;">
+        <div class="form-label">Hasło</div>
+        <input type="password" class="form-input" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div id="loginError" style="display:none;color:var(--red);font-family:var(--font-mono);font-size:0.75rem;margin-top:0.5rem;"></div>
+      <div class="modal-actions" style="margin-top:1.5rem;">
+        <button class="btn btn-outline" onclick="closeLoginModal()">Anuluj</button>
+        <button class="btn btn-primary" onclick="doLogin()" id="loginBtn">🔑 Zaloguj się</button>
+      </div>
+      <div style="text-align:center;margin-top:1rem;font-family:var(--font-mono);font-size:0.75rem;color:var(--text2);">
+        Nie masz konta? <span onclick="showRegisterForm()" style="color:var(--purple-bright);cursor:pointer;">Zarejestruj się</span>
+      </div>
+      <div style="margin:1rem 0;text-align:center;color:var(--text3);font-size:0.75rem;">— lub —</div>
+      <button class="btn btn-outline" onclick="doGoogleLogin()" style="width:100%;justify-content:center;gap:0.5rem;">
+        <span>🌐</span> Zaloguj przez Google
+      </button>
+      <button class="btn btn-outline" onclick="doGithubLogin()" style="width:100%;justify-content:center;gap:0.5rem;margin-top:0.5rem;">
+        <span>🐙</span> Zaloguj przez GitHub
+      </button>
+    </div>
+
+    <div id="registerForm" style="display:none;">
+      <div class="form-group" style="margin-top:1rem;">
+        <div class="form-label">Email</div>
+        <input type="email" class="form-input" id="regEmail" placeholder="twoj@email.com">
+      </div>
+      <div class="form-group" style="margin-top:1rem;">
+        <div class="form-label">Hasło</div>
+        <input type="password" class="form-input" id="regPassword" placeholder="minimum 6 znaków">
+      </div>
+      <div id="regError" style="display:none;color:var(--red);font-family:var(--font-mono);font-size:0.75rem;margin-top:0.5rem;"></div>
+      <div class="modal-actions" style="margin-top:1.5rem;">
+        <button class="btn btn-outline" onclick="showLoginForm()">← Wróć</button>
+        <button class="btn btn-primary" onclick="doRegister()" id="regBtn">✨ Utwórz konto</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- USER DASHBOARD WIDGET (prawy górny róg) -->
+<div id="userWidget" style="display:none;position:fixed;top:70px;right:20px;z-index:999;min-width:280px;">
+  <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:16px;padding:1.2rem;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+    <div style="display:flex;align-items:center;gap:0.8rem;margin-bottom:1rem;">
+      <div style="width:38px;height:38px;border-radius:50%;background:var(--purple-dim);border:2px solid var(--purple);display:flex;align-items:center;justify-content:center;font-size:1.1rem;">👤</div>
+      <div>
+        <div id="widgetEmail" style="font-size:0.8rem;font-weight:700;"></div>
+        <div id="widgetPlan" style="font-family:var(--font-mono);font-size:0.68rem;color:var(--green);"></div>
+      </div>
+      <button onclick="doLogout()" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:0.68rem;padding:0.3rem 0.6rem;cursor:pointer;">Wyloguj</button>
+    </div>
+    <div style="margin-bottom:0.8rem;">
+      <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.68rem;color:var(--text2);margin-bottom:0.3rem;">
+        <span>Tokeny dzisiaj</span>
+        <span id="widgetTokens">—</span>
+      </div>
+      <div style="height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;">
+        <div id="widgetBar" style="height:100%;background:linear-gradient(90deg,var(--purple),var(--green));border-radius:3px;width:0%;transition:width 0.5s;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.62rem;color:var(--text3);margin-top:0.3rem;">
+        <span id="widgetLeft">— pozostało</span>
+        <span id="widgetReset">reset: —</span>
+      </div>
+    </div>
+    <button onclick="scrollToSection('pricing-section')" style="width:100%;background:var(--purple-dim);border:1px solid var(--purple);border-radius:8px;color:var(--purple-bright);font-size:0.72rem;padding:0.5rem;cursor:pointer;font-family:var(--font-mono);">⬆ Ulepsz plan</button>
+  </div>
+</div>
+
+
+<!-- Config Modal -->
+<div class="modal-overlay" id="configModal">
+  <div class="modal-box" style="max-width:600px;">
+    <div class="modal-title">⚙️ Konfiguracja API</div>
+    <div class="modal-sub">Wybierz dostawcę AI i wprowadź swój klucz API. Klucze są przechowywane tylko lokalnie.</div>
+
+    <!-- Provider toggle -->
+    <div class="form-group" style="margin-bottom:1.5rem;">
+      <div class="form-label">Dostawca AI</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-top:0.5rem;">
+        <div class="provider-card" id="card-anthropic" onclick="selectProvider('anthropic')" style="cursor:pointer;border:2px solid var(--purple);background:var(--purple-dim);border-radius:12px;padding:1rem;transition:all 0.2s;text-align:center;">
+          <div style="font-size:1.5rem;margin-bottom:0.3rem;">🟣</div>
+          <div style="font-weight:700;font-size:0.9rem;">Anthropic</div>
+          <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text2);margin-top:0.2rem;">Claude AI</div>
+        </div>
+        <div class="provider-card" id="card-openai" onclick="selectProvider('openai')" style="cursor:pointer;border:2px solid var(--border);border-radius:12px;padding:1rem;transition:all 0.2s;text-align:center;">
+          <div style="font-size:1.5rem;margin-bottom:0.3rem;">🟢</div>
+          <div style="font-weight:700;font-size:0.9rem;">OpenAI</div>
+          <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text2);margin-top:0.2rem;">ChatGPT / GPT-4</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Anthropic section -->
+    <div id="section-anthropic">
+      <div class="form-group">
+        <div class="form-label">Klucz API Anthropic</div>
+        <input type="password" class="form-input" id="apiKeyAnthropic" placeholder="sk-ant-api03-..." autocomplete="off">
+        <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text3);margin-top:0.4rem;">
+          Pobierz klucz: <a href="https://console.anthropic.com/keys" target="_blank" style="color:var(--purple-bright);">console.anthropic.com/keys</a>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:1rem;">
+        <div class="form-label">Model Claude</div>
+        <select class="form-select" id="modelAnthropic">
+          <optgroup label="Claude 4 (Najnowsze)">
+            <option value="claude-sonnet-4-20250514">Claude Sonnet 4 — ⭐ Zalecany (szybki + mądry)</option>
+            <option value="claude-opus-4-5">Claude Opus 4.5 — 🧠 Najpotężniejszy</option>
+          </optgroup>
+          <optgroup label="Claude 4.5">
+            <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 — ⚡ Najszybszy i najtańszy</option>
+          </optgroup>
+          <optgroup label="Claude 3.5 (Starsze)">
+            <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+            <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <!-- OpenAI section -->
+    <div id="section-openai" style="display:none;">
+      <div class="form-group">
+        <div class="form-label">Klucz API OpenAI</div>
+        <input type="password" class="form-input" id="apiKeyOpenAI" placeholder="sk-proj-..." autocomplete="off">
+        <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text3);margin-top:0.4rem;">
+          Pobierz klucz: <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#10a37f;">platform.openai.com/api-keys</a>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:1rem;">
+        <div class="form-label">Model GPT</div>
+        <select class="form-select" id="modelOpenAI">
+          <optgroup label="GPT-4o (Najnowsze)">
+            <option value="gpt-4o">GPT-4o — ⭐ Zalecany (szybki + inteligentny)</option>
+            <option value="gpt-4o-mini">GPT-4o mini — ⚡ Szybki i tani</option>
+          </optgroup>
+          <optgroup label="GPT-4.1 (2025)">
+            <option value="gpt-4.1">GPT-4.1 — 🧠 Najlepsza logika</option>
+            <option value="gpt-4.1-mini">GPT-4.1 mini — ⚡ Szybki</option>
+            <option value="gpt-4.1-nano">GPT-4.1 nano — 💨 Ultra szybki</option>
+          </optgroup>
+          <optgroup label="o3 / o4 (Rozumowanie)">
+            <option value="o4-mini">o4-mini — 🔬 Rozumowanie (średni)</option>
+            <option value="o3">o3 — 🔬 Pełne rozumowanie</option>
+            <option value="o3-mini">o3-mini — 🔬 Szybkie rozumowanie</option>
+          </optgroup>
+          <optgroup label="GPT-3.5 (Starsze)">
+            <option value="gpt-3.5-turbo">GPT-3.5 Turbo — 💰 Najtańszy</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <!-- Shared: temperature -->
+    <div class="form-group" style="margin-top:1.2rem;">
+      <div class="form-label">Temperatura (0.0 – 1.0) &nbsp;<span id="tempVal" style="color:var(--purple-bright);">0.70</span></div>
+      <input type="range" min="0" max="100" value="70" id="tempSlider" style="width:100%;accent-color:var(--purple);margin-top:0.3rem;">
+      <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text3);margin-top:0.3rem;">Niższa = bardziej przewidywalny kod · Wyższa = kreatywniejszy</div>
+    </div>
+
+    <!-- Status -->
+    <div id="apiKeyStatus" style="display:none;margin-top:1rem;" class="api-key-display">
+      <span class="api-key-dot"></span> <span id="apiKeyStatusText">Klucz zapisany</span>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeConfigModal()">Anuluj</button>
+      <button class="btn btn-primary" onclick="saveConfig()">💾 Zapisz konfigurację</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="header" id="header">
+  <div class="logo-wrap" onclick="scrollToTop()">
+    <div class="logo-mark">PF</div>
+    <div class="logo-text">Plugin<span>Forge</span> <span style="color:var(--text3);font-size:0.7em;font-weight:400;">AI</span></div>
+  </div>
+  <nav class="nav-links">
+    <a onclick="scrollToSection('app-section')">Generator</a>
+    <a onclick="scrollToSection('features-section')">Możliwości</a>
+    <a onclick="scrollToSection('pricing-section')">Cennik</a>
+    <a href="https://docs.anthropic.com" target="_blank">Docs API</a>
+  </nav>
+  <div class="header-actions">
+    <button class="btn btn-outline" id="headerLoginBtn" onclick="openLoginModal()">👤 Zaloguj się</button>
+    <button class="btn btn-primary" onclick="scrollToSection('app-section')">🚀 Start</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-badge"><span class="hero-badge-dot"></span>Powered by Claude AI · Zasilane Claude AI</div>
+  <h1 class="hero-title">
+    <span class="line1">Generator pluginów</span>
+    <span class="line2">Minecraft z AI</span>
+  </h1>
+  <p class="hero-sub">Opisz swój pomysł na plugin, a AI napisze pełny kod Java gotowy do kompilacji. Rozmawiaj z AI, udoskonalaj, pobierz.</p>
+  <div class="hero-actions">
+    <button class="btn btn-primary btn-lg" onclick="scrollToSection('app-section')">🎮 Stwórz Plugin</button>
+    <button class="btn btn-outline btn-lg" onclick="scrollToSection('features-section')">Poznaj możliwości</button>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num" id="stat1">0</div><div class="stat-label">Wygenerowanych pluginów</div></div>
+    <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Możliwości</div></div>
+    <div class="stat"><div class="stat-num">Java</div><div class="stat-label">Natywny kod</div></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features-section" style="padding:6rem 3rem;position:relative;z-index:1;background:var(--bg2);border-top:1px solid var(--border);">
+  <div style="max-width:1400px;margin:0 auto;">
+    <div class="section-label">Możliwości</div>
+    <h2 class="section-title">Wszystko czego potrzebujesz do<br><em>tworzenia pluginów</em></h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>Generator AI</h3>
+        <p>Opisz plugin w języku naturalnym. AI wygeneruje kompletny kod Java z obsługą eventów, komend, configu i bazy danych.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💬</div>
+        <h3>Chat z AI</h3>
+        <p>Zadawaj pytania, proś o wyjaśnienia, udoskonalaj kod konwersacyjnie. Historia czatów zapisywana lokalnie.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">☕</div>
+        <h3>Czysty kod Java</h3>
+        <p>Otrzymujesz gotowy plik .java z właściwą strukturą pakietów, plugin.yml i komentarzami po polsku.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📦</div>
+        <h3>Pobieranie pliku</h3>
+        <p>Wygenerowany plugin pobierasz jako plik .java jednym kliknięciem. Historia wszystkich pluginów w zakładce Archiwum.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Streaming w czasie rzeczywistym</h3>
+        <p>Widzisz jak AI generuje kod w czasie rzeczywistym – nie musisz czekać na zakończenie.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔧</div>
+        <h3>Zaawansowane opcje</h3>
+        <p>Wybierz wersję Spigot/Paper, typy zdarzeń, zależności (Vault, WorldEdit) i styl kodu.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN APP -->
+<div id="app-section">
+  <div class="app-container">
+    <div class="app-header">
+      <div>
+        <div class="section-label" style="margin-bottom:0.3rem;">Narzędzie</div>
+        <h2 style="font-size:1.8rem;font-weight:800;letter-spacing:-1px;">AI Plugin Studio</h2>
+      </div>
+      <div class="app-tabs">
+        <button class="app-tab active" onclick="switchTab('generator')">⚡ Generator</button>
+        <button class="app-tab" onclick="switchTab('chat')">💬 Chat AI</button>
+        <button class="app-tab" onclick="switchTab('history')">📦 Archiwum</button>
+      </div>
+    </div>
+
+    <!-- TAB: GENERATOR -->
+    <div class="tab-content active" id="tab-generator">
+      <div class="generator-layout">
+        <!-- Input panel -->
+        <div class="gen-panel">
+          <div class="panel-header">
+            <span class="panel-header-dot dot-red"></span>
+            <span class="panel-header-dot dot-yellow"></span>
+            <span class="panel-header-dot dot-green"></span>
+            <span class="panel-title">Opis pluginu</span>
+          </div>
+          <div class="panel-body">
+            <div class="form-group">
+              <div class="form-label">Nazwa pluginu</div>
+              <input type="text" class="form-input" id="pluginName" placeholder="np. SuperEconomy" value="">
+            </div>
+            <div class="form-group">
+              <div class="form-label">Opis (co ma robić plugin?)</div>
+              <textarea class="form-textarea" id="pluginDesc" placeholder="Np: Plugin który dodaje system ekonomii. Gracze mogą zarabiać monety za zabijanie mobów, używając komendy /bal sprawdzają saldo, /pay [gracz] [kwota] przelewa środki..."></textarea>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Wersja Minecraft</div>
+              <select class="form-select" id="mcVersion">
+                <option value="1.21">1.21 (Latest)</option>
+                <option value="1.20.6">1.20.6</option>
+                <option value="1.20.4">1.20.4</option>
+                <option value="1.19.4">1.19.4</option>
+                <option value="1.18.2">1.18.2</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Platform</div>
+              <select class="form-select" id="mcPlatform">
+                <option value="Paper">Paper (Zalecany)</option>
+                <option value="Spigot">Spigot</option>
+                <option value="Bukkit">Bukkit</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Funkcje (wybierz)</div>
+              <div class="tags-container" id="featureTags">
+                <span class="tag" onclick="toggleTag(this)">Komendy</span>
+                <span class="tag" onclick="toggleTag(this)">Eventy</span>
+                <span class="tag" onclick="toggleTag(this)">Konfiguracja (config.yml)</span>
+                <span class="tag" onclick="toggleTag(this)">Baza danych (SQLite)</span>
+                <span class="tag" onclick="toggleTag(this)">MySQL</span>
+                <span class="tag" onclick="toggleTag(this)">Permisje</span>
+                <span class="tag" onclick="toggleTag(this)">GUI (Inventory)</span>
+                <span class="tag" onclick="toggleTag(this)">Vault API</span>
+                <span class="tag" onclick="toggleTag(this)">PlaceholderAPI</span>
+                <span class="tag" onclick="toggleTag(this)">WorldEdit/FAWE</span>
+                <span class="tag" onclick="toggleTag(this)">Scheduler/Tasker</span>
+                <span class="tag" onclick="toggleTag(this)">BossBar/ActionBar</span>
+              </div>
+            </div>
+            <div class="advanced-toggle" onclick="toggleAdvanced()">
+              <span id="advArrow">▶</span> Zaawansowane opcje
+            </div>
+            <div class="advanced-section" id="advancedSection">
+              <div class="form-group">
+                <div class="form-label">Styl komentarzy</div>
+                <select class="form-select" id="commentStyle">
+                  <option value="pl">Po polsku</option>
+                  <option value="en">Po angielsku</option>
+                  <option value="none">Brak komentarzy</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Pakiet Java (package)</div>
+                <input type="text" class="form-input" id="javaPackage" placeholder="pl.mojserwer.myplugin">
+              </div>
+              <div class="form-group">
+                <div class="form-label">Autor pluginu</div>
+                <input type="text" class="form-input" id="pluginAuthor" placeholder="TwojNick">
+              </div>
+              <div class="form-group">
+                <div class="form-label">Dodatkowe wymagania</div>
+                <textarea class="form-textarea" id="extraReqs" placeholder="np: Plugin musi obsługiwać economy z Vault, prefix wiadomości to [Economy]..." style="min-height:80px;"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="generate-btn-wrap">
+            <button class="generate-btn" id="generateBtn" onclick="generatePlugin()">
+              ⚡ GENERUJ PLUGIN
+            </button>
+          </div>
+        </div>
+
+        <!-- Output panel -->
+        <div class="gen-panel">
+          <div class="panel-header">
+            <span class="panel-header-dot dot-red"></span>
+            <span class="panel-header-dot dot-yellow"></span>
+            <span class="panel-header-dot dot-green"></span>
+            <span class="panel-title" id="outputPanelTitle">Wygenerowany kod</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="panel-body" style="padding:1rem;">
+            <div id="outputContainer" style="flex:1;display:flex;flex-direction:column;">
+              <div class="output-placeholder" id="outputPlaceholder">
+                <div class="output-placeholder-icon">☕</div>
+                <div class="output-placeholder-text">Twój kod Java pojawi się tutaj...<br><br><span style="color:var(--text3);">Wypełnij formularz i kliknij Generuj Plugin</span></div>
+              </div>
+              <pre class="code-block" id="codeOutput" style="display:none;"></pre>
+            </div>
+          </div>
+          <div class="status-bar">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <span id="statusText" style="font-family:var(--font-mono);font-size:0.72rem;">Gotowy</span>
+          </div>
+          <div class="output-actions" id="outputActions" style="display:none;">
+            <button class="btn btn-green" onclick="downloadJava()">⬇ Pobierz .java</button>
+            <button class="btn btn-outline" onclick="copyCode()">📋 Kopiuj kod</button>
+            <button class="btn btn-outline" onclick="generatePluginYml()">📄 plugin.yml</button>
+            <button class="btn btn-outline" onclick="sendToChat()">💬 Wyślij do chatu</button>
+            <div class="token-counter">Tokeny: <span class="token-val" id="tokenCount">—</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: CHAT -->
+    <div class="tab-content" id="tab-chat">
+      <div class="chat-layout">
+        <!-- Sidebar -->
+        <div class="chat-sidebar">
+          <div class="sidebar-header">
+            <input type="text" class="sidebar-search" placeholder="Szukaj w czatach..." oninput="searchChats(this.value)">
+          </div>
+          <div class="chat-list" id="chatList"></div>
+          <div class="sidebar-footer">
+            <button class="new-chat-btn" onclick="newChat()">+ Nowy czat</button>
+          </div>
+        </div>
+        <!-- Chat window -->
+        <div class="chat-window">
+          <div class="chat-toolbar">
+            <div style="display:flex;align-items:center;gap:0.8rem;">
+              <div class="status-indicator active" id="chatStatusDot"></div>
+              <span id="chatTitle" style="font-weight:700;font-size:0.95rem;">Nowy czat</span>
+            </div>
+            <div style="display:flex;gap:0.8rem;align-items:center;">
+              <select class="chat-mode-select" id="chatMode">
+                <option value="general">💬 Ogólny</option>
+                <option value="plugin">🎮 Asystent Pluginów</option>
+                <option value="debug">🐛 Debugger Java</option>
+                <option value="explain">📖 Wyjaśniacz kodu</option>
+              </select>
+              <button class="btn btn-outline" onclick="clearChat()" style="font-size:0.72rem;padding:0.4rem 0.8rem;">Wyczyść</button>
+            </div>
+          </div>
+          <div class="chat-messages" id="chatMessages">
+            <div class="msg">
+              <div class="msg-avatar ai">AI</div>
+              <div class="msg-body">
+                <div class="msg-name ai-name">PluginForge AI</div>
+                <div class="msg-text">Cześć! Jestem twoim asystentem do tworzenia pluginów Minecraft w Javie. Mogę ci pomóc z:
+
+• 🎮 Pisaniem i wyjaśnianiem kodu pluginów
+• 🐛 Debugowaniem błędów i wyjątków
+• 📚 Tłumaczeniem API Spigot/Paper
+• ⚡ Optymalizacją i refaktoryzacją kodu
+• 🔧 Konfiguracją plugin.yml i struktury projektu
+
+W czym mogę ci dzisiaj pomóc?</div>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-wrap">
+            <div class="chat-input-row">
+              <textarea class="chat-input" id="chatInput" placeholder="Zapytaj o plugin, wklej kod do sprawdzenia..." rows="1" onkeydown="chatKeyDown(event)" oninput="autoResize(this)"></textarea>
+              <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">➤</button>
+            </div>
+            <div class="chat-hint">Enter = wyślij · Shift+Enter = nowa linia</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: HISTORY -->
+    <div class="tab-content" id="tab-history">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
+        <div>
+          <div class="section-label" style="margin-bottom:0.3rem;">Archiwum</div>
+          <h3 style="font-size:1.4rem;font-weight:800;letter-spacing:-0.5px;">Wygenerowane pluginy</h3>
+        </div>
+        <button class="btn btn-danger" onclick="clearHistory()">🗑 Wyczyść archiwum</button>
+      </div>
+      <div class="history-grid" id="historyGrid">
+        <div class="empty-state">
+          <div class="empty-state-icon">📦</div>
+          <div class="empty-state-text">Brak wygenerowanych pluginów.<br>Wygeneruj swój pierwszy plugin w zakładce Generator!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<section id="pricing-section" class="section" style="padding:6rem 3rem;border-top:1px solid var(--border);">
+  <div style="max-width:1400px;margin:0 auto;">
+    <div class="section-label">Cennik</div>
+    <h2 class="section-title">Prosty, przejrzysty <em>cennik</em></h2>
+    <p class="section-sub">Używasz własnego klucza API Anthropic. Płacisz tylko za tokeny które zużyjesz.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-tier">Starter</div>
+        <div class="price-amount">Darmowy</div>
+        <div class="price-period">Własny klucz API</div>
+        <ul class="price-features">
+          <li class="price-feature">Generator pluginów Java</li>
+          <li class="price-feature">Chat z AI bez limitu</li>
+          <li class="price-feature">Pobieranie pliku .java</li>
+          <li class="price-feature">Archiwum pluginów</li>
+          <li class="price-feature">Streaming w czasie rzeczywistym</li>
+        </ul>
+        <button class="btn btn-outline" onclick="openConfigModal()" style="width:100%;padding:0.9rem;">Dodaj klucz API →</button>
+      </div>
+      <div class="price-card featured">
+        <div class="price-tier">Pro</div>
+        <div class="price-amount">~$0.003</div>
+        <div class="price-period">/ 1000 tokenów (Claude Sonnet)</div>
+        <ul class="price-features">
+          <li class="price-feature">Wszystko ze Starter</li>
+          <li class="price-feature">Przeciętny plugin ≈ 3000 tokenów</li>
+          <li class="price-feature">~$0.009 za jeden plugin</li>
+          <li class="price-feature">Bez ukrytych opłat</li>
+          <li class="price-feature">Własny klucz = pełna kontrola</li>
+        </ul>
+        <button class="btn btn-primary" onclick="openConfigModal()" style="width:100%;padding:0.9rem;">Zacznij generować →</button>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">Haiku (Szybki)</div>
+        <div class="price-amount">~$0.0003</div>
+        <div class="price-period">/ 1000 tokenów (Claude Haiku)</div>
+        <ul class="price-features">
+          <li class="price-feature">10x tańszy niż Sonnet</li>
+          <li class="price-feature">Szybsze generowanie</li>
+          <li class="price-feature">Dobre dla prostych pluginów</li>
+          <li class="price-feature">Idealny do chatowania</li>
+          <li class="price-feature">Możesz zmienić w konfigu</li>
+        </ul>
+        <button class="btn btn-outline" onclick="openConfigModal()" style="width:100%;padding:0.9rem;">Wybierz Haiku →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <h3>Plugin<span style="color:var(--purple-bright);">Forge</span> AI</h3>
+        <p style="margin-top:0.8rem;">Generator pluginów Minecraft zasilany przez Claude AI. Twórz profesjonalne pluginy Java bez znajomości programowania.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Narzędzie</h4>
+        <ul>
+          <li><a onclick="scrollToSection('app-section')">Generator</a></li>
+          <li><a onclick="switchTab('chat');scrollToSection('app-section')">Chat AI</a></li>
+          <li><a onclick="switchTab('history');scrollToSection('app-section')">Archiwum</a></li>
+          <li><a onclick="openConfigModal()">Konfiguracja API</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Zasoby</h4>
+        <ul>
+          <li><a href="https://docs.anthropic.com" target="_blank">API Anthropic</a></li>
+          <li><a href="https://jd.papermc.io/paper/1.21/" target="_blank">Paper JavaDoc</a></li>
+          <li><a href="https://hub.spigotmc.org/javadocs/spigot/" target="_blank">Spigot API</a></li>
+          <li><a href="https://www.spigotmc.org/wiki/spigot/" target="_blank">SpigotMC Wiki</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Info</h4>
+        <ul>
+          <li><a>O projekcie</a></li>
+          <li><a>Warunki użytkowania</a></li>
+          <li><a>Polityka prywatności</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 PluginForge AI · Nie jest powiązany z Mojang/Microsoft · Wymaga własnego klucza Anthropic API</div>
+      <div class="footer-copy" style="color:var(--text3);">Powered by Claude AI</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ============ SUPABASE + BACKEND ============
+const SUPABASE_URL  = 'https://bkhbddfukzqilmiyqdqv.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_MQdua0miEmt5kq2V9lMqdg_PiLYaIQP';
+const BACKEND_URL   = 'https://zikoai.vercel.app';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let currentUser = null;
+let currentSession = null;
+let userPlanData = null;
+
+// ============ CONFIG ============
+let CFG = {
+  provider: localStorage.getItem('pf_provider') || 'anthropic',
+  modelAnthropic: localStorage.getItem('pf_model_anthropic') || 'claude-sonnet-4-20250514',
+  modelOpenAI: localStorage.getItem('pf_model_openai') || 'gpt-4o',
+  temp: parseFloat(localStorage.getItem('pf_temp') || '0.7'),
+};
+function getActiveApiKey() { return currentSession?.access_token || ''; }
+function getActiveModel()  { return CFG.provider === 'openai' ? CFG.modelOpenAI : CFG.modelAnthropic; }
+
+// ============ CHAT STATE ============
+let chats = JSON.parse(localStorage.getItem('pf_chats') || '[]');
+let currentChatId = null;
+let isChatGenerating = false;
+let isGenerating = false;
+let generatedCode = '';
+let pluginHistory = JSON.parse(localStorage.getItem('pf_history') || '[]');
+let pluginCounter = parseInt(localStorage.getItem('pf_counter') || '0');
+
+// ============ INIT ============
+window.onload = () => {
+  selectProvider(CFG.provider);
+  document.getElementById('apiKeyAnthropic').value = CFG.apiKeyAnthropic;
+  document.getElementById('apiKeyOpenAI').value = CFG.apiKeyOpenAI;
+  document.getElementById('modelAnthropic').value = CFG.modelAnthropic;
+  document.getElementById('modelOpenAI').value = CFG.modelOpenAI;
+  document.getElementById('tempSlider').value = Math.round(CFG.temp * 100);
+  document.getElementById('tempVal').textContent = CFG.temp.toFixed(2);
+  if (getActiveApiKey()) {
+    document.getElementById('apiKeyStatus').style.display = 'flex';
+    document.getElementById('apiKeyStatusText').textContent = (CFG.provider === 'openai' ? 'OpenAI' : 'Anthropic') + ' — klucz zapisany';
+  }
+  renderChatList();
+  renderHistory();
+  animateCounter('stat1', pluginCounter, 1500);
+  document.getElementById('tempSlider').oninput = function() {
+    document.getElementById('tempVal').textContent = (this.value / 100).toFixed(2);
+  };
+  window.addEventListener('scroll', () => {
+    document.getElementById('header').classList.toggle('scrolled', window.scrollY > 30);
+  });
+
+  // Nasłuchuj zmian stanu logowania (w tym powrót z Google/GitHub OAuth)
+  sb.auth.onAuthStateChange((event, session) => {
+    if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session) {
+      onLogin(session, session.user);
+    }
+    if (event === 'SIGNED_OUT') { currentSession = null; currentUser = null; }
+  });
+
+  // Sprawdź sesję przy ładowaniu strony (obsługa powrotu z OAuth redirect)
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session && !currentSession) onLogin(session, session.user);
+  });
+};
+
+// ============ UTILS ============
+function scrollToTop() { window.scrollTo({top:0,behavior:'smooth'}); }
+function scrollToSection(id) { document.getElementById(id)?.scrollIntoView({behavior:'smooth'}); }
+
+function toast(msg, type='success') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = (type==='success'?'✓ ':'✗ ') + msg;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function animateCounter(id, target, dur) {
+  const el = document.getElementById(id);
+  let start = 0; const step = target / (dur/16);
+  const timer = setInterval(() => {
+    start = Math.min(start + step, target);
+    el.textContent = Math.floor(start);
+    if (start >= target) clearInterval(timer);
+  }, 16);
+}
+
+// ============ CONFIG MODAL ============
+function openConfigModal() { document.getElementById('configModal').classList.add('open'); }
+function closeConfigModal() { document.getElementById('configModal').classList.remove('open'); }
+document.getElementById('configModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('configModal')) closeConfigModal();
+});
+function selectProvider(p) {
+  CFG.provider = p;
+  const isOpenAI = p === 'openai';
+  document.getElementById('section-anthropic').style.display = isOpenAI ? 'none' : 'block';
+  document.getElementById('section-openai').style.display = isOpenAI ? 'block' : 'none';
+  const cardA = document.getElementById('card-anthropic');
+  const cardO = document.getElementById('card-openai');
+  if (isOpenAI) {
+    cardA.style.border = '2px solid var(--border)'; cardA.style.background = 'transparent';
+    cardO.style.border = '2px solid #10a37f'; cardO.style.background = 'rgba(16,163,127,0.1)';
+  } else {
+    cardA.style.border = '2px solid var(--purple)'; cardA.style.background = 'var(--purple-dim)';
+    cardO.style.border = '2px solid var(--border)'; cardO.style.background = 'transparent';
+  }
+}
+
+function saveConfig() {
+  const keyA = document.getElementById('apiKeyAnthropic').value.trim();
+  const keyO = document.getElementById('apiKeyOpenAI').value.trim();
+  const modelA = document.getElementById('modelAnthropic').value;
+  const modelO = document.getElementById('modelOpenAI').value;
+  const temp = document.getElementById('tempSlider').value / 100;
+  const activeKey = CFG.provider === 'openai' ? keyO : keyA;
+  if (!activeKey) { toast('Podaj klucz API dla wybranego dostawcy!', 'error'); return; }
+  CFG = { provider: CFG.provider, apiKeyAnthropic: keyA, apiKeyOpenAI: keyO, modelAnthropic: modelA, modelOpenAI: modelO, temp };
+  localStorage.setItem('pf_provider', CFG.provider);
+  localStorage.setItem('pf_key_anthropic', keyA);
+  localStorage.setItem('pf_key_openai', keyO);
+  localStorage.setItem('pf_model_anthropic', modelA);
+  localStorage.setItem('pf_model_openai', modelO);
+  localStorage.setItem('pf_temp', temp);
+  document.getElementById('apiKeyStatus').style.display = 'flex';
+  document.getElementById('apiKeyStatusText').textContent = (CFG.provider === 'openai' ? 'OpenAI' : 'Anthropic') + ' — klucz zapisany';
+  closeConfigModal();
+  toast('Zapisano! Aktywny dostawca: ' + (CFG.provider === 'openai' ? 'OpenAI (GPT)' : 'Anthropic (Claude)'));
+}
+
+// ============ TABS ============
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.app-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const idx = ['generator','chat','history'].indexOf(name);
+  document.querySelectorAll('.app-tab')[idx].classList.add('active');
+}
+
+// ============ GENERATOR TAGS ============
+function toggleTag(el) { el.classList.toggle('selected'); }
+function getSelectedTags() {
+  return [...document.querySelectorAll('.tag.selected')].map(t => t.textContent);
+}
+function toggleAdvanced() {
+  const sec = document.getElementById('advancedSection');
+  const arr = document.getElementById('advArrow');
+  const open = sec.classList.toggle('open');
+  arr.textContent = open ? '▼' : '▶';
+}
+
+// ============ UNIVERSAL API CALL (przez backend) ============
+async function callAIStream(messages, system, maxTokens) {
+  if (!currentSession) {
+    openLoginModal();
+    throw new Error('Musisz się zalogować!');
+  }
+  const res = await fetch(BACKEND_URL + '/api/chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + currentSession.access_token,
+    },
+    body: JSON.stringify({
+      provider: CFG.provider,
+      model: getActiveModel(),
+      messages,
+      system,
+      maxTokens,
+      temperature: CFG.temp,
+    })
+  });
+  if (res.status === 401) { doLogout(); throw new Error('Sesja wygasła. Zaloguj się ponownie.'); }
+  if (res.status === 429) {
+    const e = await res.json();
+    throw new Error(e.message || 'Przekroczyłeś dzienny limit tokenów!');
+  }
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.error || 'Błąd serwera');
+  }
+  return res;
+}
+
+// ============ FETCH USER DATA ============
+async function fetchUserData() {
+  if (!currentSession) return;
+  try {
+    const res = await fetch(BACKEND_URL + '/api/user', {
+      headers: { 'Authorization': 'Bearer ' + currentSession.access_token }
+    });
+    if (!res.ok) return;
+    userPlanData = await res.json();
+    updateUserWidget();
+  } catch {}
+}
+
+function updateUserWidget() {
+  if (!userPlanData) return;
+  const { email, planLabel, planColor, tokensUsedToday, tokensLimit, tokensLeft, usagePercent, resetsIn } = userPlanData;
+  document.getElementById('widgetEmail').textContent = email;
+  document.getElementById('widgetPlan').textContent = planLabel + ' plan';
+  document.getElementById('widgetPlan').style.color = planColor || 'var(--green)';
+  document.getElementById('widgetTokens').textContent = tokensUsedToday?.toLocaleString('pl-PL') + ' / ' + (tokensLimit?.toLocaleString('pl-PL') || '∞');
+  document.getElementById('widgetBar').style.width = (usagePercent || 0) + '%';
+  document.getElementById('widgetBar').style.background = usagePercent > 80
+    ? 'linear-gradient(90deg,#ff4d6d,#ff8c00)'
+    : 'linear-gradient(90deg,var(--purple),var(--green))';
+  document.getElementById('widgetLeft').textContent = (tokensLeft?.toLocaleString('pl-PL') || '∞') + ' pozostało';
+  document.getElementById('widgetReset').textContent = 'reset: ' + (resetsIn || '—');
+}
+
+// ============ AUTH FUNCTIONS ============
+function openLoginModal() {
+  showLoginForm();
+  document.getElementById('loginModal').classList.add('open');
+}
+function closeLoginModal() { document.getElementById('loginModal').classList.remove('open'); }
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('loginModal')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('loginModal')) closeLoginModal();
+  });
+});
+
+function showLoginForm() {
+  document.getElementById('loginModalTitle').textContent = '👤 Zaloguj się';
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('registerForm').style.display = 'none';
+}
+function showRegisterForm() {
+  document.getElementById('loginModalTitle').textContent = '✨ Utwórz konto';
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('registerForm').style.display = 'block';
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  const btn   = document.getElementById('loginBtn');
+  if (!email || !pass) { errEl.textContent = 'Podaj email i hasło.'; errEl.style.display='block'; return; }
+  btn.disabled = true; btn.textContent = 'Logowanie...';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  btn.disabled = false; btn.textContent = '🔑 Zaloguj się';
+  if (error) { errEl.textContent = error.message; errEl.style.display='block'; return; }
+  errEl.style.display='none';
+  onLogin(data.session, data.user);
+}
+
+async function doRegister() {
+  const email = document.getElementById('regEmail').value.trim();
+  const pass  = document.getElementById('regPassword').value;
+  const errEl = document.getElementById('regError');
+  const btn   = document.getElementById('regBtn');
+  if (!email || !pass) { errEl.textContent = 'Podaj email i hasło.'; errEl.style.display='block'; return; }
+  if (pass.length < 6) { errEl.textContent = 'Hasło musi mieć min. 6 znaków.'; errEl.style.display='block'; return; }
+  btn.disabled = true; btn.textContent = 'Tworzenie konta...';
+  const { data, error } = await sb.auth.signUp({ email, password: pass });
+  btn.disabled = false; btn.textContent = '✨ Utwórz konto';
+  if (error) { errEl.textContent = error.message; errEl.style.display='block'; return; }
+  if (data.session) {
+    onLogin(data.session, data.user);
+  } else {
+    errEl.style.color = 'var(--green)';
+    errEl.textContent = '✓ Sprawdź email i potwierdź rejestrację!';
+    errEl.style.display='block';
+  }
+}
+
+async function doGoogleLogin() {
+  await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+}
+async function doGithubLogin() {
+  await sb.auth.signInWithOAuth({ provider: 'github', options: { redirectTo: window.location.href } });
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  currentUser = null; currentSession = null; userPlanData = null;
+  document.getElementById('userWidget').style.display = 'none';
+  document.getElementById('headerLoginBtn').textContent = '👤 Zaloguj się';
+  toast('Wylogowano pomyślnie.');
+}
+
+function onLogin(session, user) {
+  currentSession = session;
+  currentUser = user;
+  closeLoginModal();
+  document.getElementById('userWidget').style.display = 'block';
+  document.getElementById('headerLoginBtn').textContent = '👤 ' + (user.email?.split('@')[0] || 'Konto');
+  fetchUserData();
+  toast('Zalogowano jako ' + user.email);
+  // Odśwież dane co 60 sekund
+  setInterval(fetchUserData, 60000);
+}
+
+// ============ GENERATE PLUGIN ============
+async function generatePlugin() {
+  if (!currentSession) { openLoginModal(); toast('Zaloguj się żeby generować pluginy!', 'error'); return; }
+  if (isGenerating) return;
+
+  const name = document.getElementById('pluginName').value.trim() || 'MyPlugin';
+  const desc = document.getElementById('pluginDesc').value.trim();
+  if (!desc) { toast('Opisz co ma robić plugin!', 'error'); return; }
+
+  const version = document.getElementById('mcVersion').value;
+  const platform = document.getElementById('mcPlatform').value;
+  const tags = getSelectedTags();
+  const comments = document.getElementById('commentStyle').value;
+  const pkg = document.getElementById('javaPackage').value.trim() || 'pl.myplugin.' + name.toLowerCase();
+  const author = document.getElementById('pluginAuthor').value.trim() || 'PluginForge';
+  const extra = document.getElementById('extraReqs').value.trim();
+
+  const featuresStr = tags.length ? `\nFunkcje do zaimplementowania: ${tags.join(', ')}` : '';
+  const extraStr = extra ? `\nDodatkowe wymagania: ${extra}` : '';
+
+  const prompt = `Stwórz kompletny plugin Minecraft w Java dla platformy ${platform} (API ${version}).
+
+Nazwa pluginu: ${name}
+Pakiet Java: ${pkg}
+Autor: ${author}
+Język komentarzy: ${comments === 'pl' ? 'Polski' : comments === 'en' ? 'Angielski' : 'brak komentarzy'}
+
+Opis pluginu:
+${desc}
+${featuresStr}
+${extraStr}
+
+Wymagania techniczne:
+1. Zwróć TYLKO kod Java, bez żadnych wyjaśnień, markdown czy bloków kodu
+2. Zaczerpnij właściwą strukturę klasy głównej rozszerzającej JavaPlugin
+3. Dołącz wszystkie niezbędne importy
+4. Użyj podanego pakietu Java
+5. Kod musi być kompletny i gotowy do kompilacji
+6. Na końcu pliku (jako komentarz blokowy /* */) dodaj zawartość plugin.yml
+
+Zacznij od package ${pkg};`;
+
+  isGenerating = true;
+  document.getElementById('generateBtn').disabled = true;
+  document.getElementById('generateBtn').classList.add('loading');
+  document.getElementById('generateBtn').textContent = '⏳ Generowanie...';
+  document.getElementById('outputPlaceholder').style.display = 'none';
+  document.getElementById('codeOutput').style.display = 'block';
+  document.getElementById('codeOutput').textContent = '';
+  document.getElementById('outputActions').style.display = 'none';
+  document.getElementById('progressFill').style.width = '10%';
+  document.getElementById('statusIndicator').className = 'status-indicator active';
+  document.getElementById('statusText').textContent = 'Generowanie kodu...';
+  document.getElementById('outputPanelTitle').textContent = name + '.java';
+  generatedCode = '';
+  let tokenCount = 0;
+
+  try {
+    const res = await callAIStream([{ role: 'user', content: prompt }], null, 4096);
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    let progress = 10;
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(data);
+          // Anthropic format
+          if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
+            const chunk = parsed.delta.text;
+            generatedCode += chunk;
+            document.getElementById('codeOutput').textContent = generatedCode;
+            progress = Math.min(progress + 0.5, 90);
+            document.getElementById('progressFill').style.width = progress + '%';
+            tokenCount += chunk.split(/\s+/).length;
+            document.getElementById('tokenCount').textContent = '~' + tokenCount;
+            document.getElementById('codeOutput').scrollTop = document.getElementById('codeOutput').scrollHeight;
+          }
+          if (parsed.usage) { document.getElementById('tokenCount').textContent = parsed.usage.output_tokens; }
+          // OpenAI format
+          if (parsed.choices?.[0]?.delta?.content) {
+            const chunk = parsed.choices[0].delta.content;
+            generatedCode += chunk;
+            document.getElementById('codeOutput').textContent = generatedCode;
+            progress = Math.min(progress + 0.5, 90);
+            document.getElementById('progressFill').style.width = progress + '%';
+            tokenCount += chunk.split(/\s+/).length;
+            document.getElementById('tokenCount').textContent = '~' + tokenCount;
+            document.getElementById('codeOutput').scrollTop = document.getElementById('codeOutput').scrollHeight;
+          }
+        } catch {}
+      }
+    }
+
+    document.getElementById('progressFill').style.width = '100%';
+    document.getElementById('outputActions').style.display = 'flex';
+    document.getElementById('statusText').textContent = 'Gotowe! ✓';
+    document.getElementById('statusIndicator').className = 'status-indicator';
+    document.getElementById('statusIndicator').style.background = 'var(--green)';
+
+    // Save to history
+    const record = { id: Date.now(), name, code: generatedCode, version, platform, ts: new Date().toLocaleString('pl-PL'), tags };
+    pluginHistory.unshift(record);
+    localStorage.setItem('pf_history', JSON.stringify(pluginHistory));
+    pluginCounter++;
+    localStorage.setItem('pf_counter', pluginCounter);
+    renderHistory();
+    toast('Plugin wygenerowany! Możesz go pobrać.');
+
+  } catch (err) {
+    document.getElementById('statusText').textContent = 'Błąd: ' + err.message;
+    document.getElementById('statusIndicator').className = 'status-indicator error';
+    document.getElementById('codeOutput').textContent = '// Błąd: ' + err.message;
+    toast(err.message, 'error');
+  } finally {
+    isGenerating = false;
+    document.getElementById('generateBtn').disabled = false;
+    document.getElementById('generateBtn').classList.remove('loading');
+    document.getElementById('generateBtn').textContent = '⚡ GENERUJ PLUGIN';
+    setTimeout(() => { document.getElementById('progressFill').style.width = '0%'; }, 1000);
+  }
+}
+
+// ============ DOWNLOAD ============
+function downloadJava() {
+  if (!generatedCode) { toast('Nie ma czego pobierać!', 'error'); return; }
+  const name = document.getElementById('pluginName').value.trim() || 'MyPlugin';
+  const blob = new Blob([generatedCode], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name + '.java';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Plik ' + name + '.java pobrany!');
+}
+
+function downloadHistoryPlugin(id) {
+  const rec = pluginHistory.find(p => p.id === id);
+  if (!rec) return;
+  const blob = new Blob([rec.code], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = rec.name + '.java';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Pobieranie ' + rec.name + '.java');
+}
+
+function copyCode() {
+  if (!generatedCode) return;
+  navigator.clipboard.writeText(generatedCode).then(() => toast('Skopiowano do schowka!'));
+}
+
+async function generatePluginYml() {
+  if (!generatedCode) { toast('Najpierw wygeneruj plugin!', 'error'); return; }
+  const name = document.getElementById('pluginName').value.trim() || 'MyPlugin';
+  const version = document.getElementById('mcVersion').value;
+  const author = document.getElementById('pluginAuthor').value.trim() || 'PluginForge';
+  const yml = `name: ${name}\nversion: 1.0\nmain: pl.myplugin.${name.toLowerCase()}.${name}\napi-version: '${version.substring(0,4)}'\nauthor: ${author}\ndescription: Generated by PluginForge AI`;
+  const blob = new Blob([yml], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'plugin.yml';
+  a.click(); URL.revokeObjectURL(url);
+  toast('plugin.yml pobrany!');
+}
+
+function sendToChat() {
+  if (!generatedCode) return;
+  const name = document.getElementById('pluginName').value.trim() || 'MyPlugin';
+  switchTab('chat');
+  scrollToSection('app-section');
+  setTimeout(() => {
+    document.getElementById('chatInput').value = `Wygenerowałem plugin ${name}. Sprawdź ten kod i zasugeruj ulepszenia:\n\n\`\`\`java\n${generatedCode.slice(0,3000)}\n\`\`\``;
+    autoResize(document.getElementById('chatInput'));
+  }, 300);
+}
+
+// ============ HISTORY ============
+function renderHistory() {
+  const container = document.getElementById('historyGrid');
+  if (!pluginHistory.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><div class="empty-state-text">Brak wygenerowanych pluginów.<br>Wygeneruj swój pierwszy plugin w zakładce Generator!</div></div>';
+    return;
+  }
+  container.innerHTML = pluginHistory.map(p => `
+    <div class="history-card">
+      <div class="history-card-header">
+        <div class="history-card-title">☕ ${p.name}.java</div>
+        <div class="history-card-tag">${p.platform} ${p.version}</div>
+      </div>
+      <div class="history-card-meta">Wygenerowano: ${p.ts} · ${(p.code.length / 1000).toFixed(1)}k znaków</div>
+      ${p.tags && p.tags.length ? `<div class="tags-container" style="margin-bottom:1rem;">${p.tags.map(t=>`<span class="tag" style="cursor:default;">${t}</span>`).join('')}</div>` : ''}
+      <div class="history-card-actions">
+        <button class="btn btn-green" onclick="downloadHistoryPlugin(${p.id})" style="font-size:0.72rem;padding:0.5rem 1rem;">⬇ Pobierz .java</button>
+        <button class="btn btn-outline" onclick="loadIntoEditor(${p.id})" style="font-size:0.72rem;padding:0.5rem 1rem;">📝 Edytuj w generatorze</button>
+        <button class="btn btn-danger" onclick="deleteHistoryPlugin(${p.id})" style="font-size:0.72rem;padding:0.5rem 1rem;">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function loadIntoEditor(id) {
+  const rec = pluginHistory.find(p => p.id === id);
+  if (!rec) return;
+  switchTab('generator');
+  document.getElementById('pluginName').value = rec.name;
+  generatedCode = rec.code;
+  document.getElementById('codeOutput').textContent = rec.code;
+  document.getElementById('codeOutput').style.display = 'block';
+  document.getElementById('outputPlaceholder').style.display = 'none';
+  document.getElementById('outputActions').style.display = 'flex';
+  document.getElementById('outputPanelTitle').textContent = rec.name + '.java';
+  scrollToSection('app-section');
+  toast('Plugin załadowany do edytora.');
+}
+
+function deleteHistoryPlugin(id) {
+  pluginHistory = pluginHistory.filter(p => p.id !== id);
+  localStorage.setItem('pf_history', JSON.stringify(pluginHistory));
+  renderHistory();
+  toast('Plugin usunięty z archiwum.');
+}
+
+function clearHistory() {
+  if (!confirm('Usunąć całe archiwum?')) return;
+  pluginHistory = [];
+  localStorage.setItem('pf_history', JSON.stringify([]));
+  renderHistory();
+  toast('Archiwum wyczyszczone.');
+}
+
+// ============ CHAT ============
+function getChatMessages(chatId) {
+  const chat = chats.find(c => c.id === chatId);
+  return chat ? chat.messages : [];
+}
+
+function renderChatList(filter='') {
+  const container = document.getElementById('chatList');
+  const filtered = chats.filter(c => c.title.toLowerCase().includes(filter.toLowerCase()));
+  container.innerHTML = filtered.map(c => `
+    <div class="chat-item ${c.id === currentChatId ? 'active' : ''}" onclick="loadChat(${c.id})">
+      <div class="chat-item-title">${escHtml(c.title)}</div>
+      <div class="chat-item-meta">${c.ts} · ${c.messages.filter(m=>m.role==='user').length} wiad.</div>
+      <button class="chat-item-del" onclick="event.stopPropagation();deleteChat(${c.id})">✕</button>
+    </div>
+  `).join('') || `<div style="padding:1rem;text-align:center;color:var(--text3);font-family:var(--font-mono);font-size:0.75rem;">Brak czatów</div>`;
+}
+
+function searchChats(v) { renderChatList(v); }
+
+function newChat() {
+  const id = Date.now();
+  const chat = { id, title: 'Nowy czat', messages: [], ts: new Date().toLocaleString('pl-PL') };
+  chats.unshift(chat);
+  saveChats();
+  loadChat(id);
+}
+
+function loadChat(id) {
+  currentChatId = id;
+  const chat = chats.find(c => c.id === id);
+  document.getElementById('chatTitle').textContent = chat.title;
+  renderChatMessages(chat.messages);
+  renderChatList();
+}
+
+function deleteChat(id) {
+  chats = chats.filter(c => c.id !== id);
+  if (currentChatId === id) { currentChatId = null; document.getElementById('chatMessages').innerHTML = ''; document.getElementById('chatTitle').textContent = 'Nowy czat'; }
+  saveChats();
+  renderChatList();
+}
+
+function saveChats() { localStorage.setItem('pf_chats', JSON.stringify(chats)); }
+
+function renderChatMessages(messages) {
+  const container = document.getElementById('chatMessages');
+  if (!messages.length) {
+    container.innerHTML = `<div class="msg"><div class="msg-avatar ai">AI</div><div class="msg-body"><div class="msg-name ai-name">PluginForge AI</div><div class="msg-text">Witaj! W czym mogę ci dzisiaj pomóc z pluginami Minecraft?</div></div></div>`;
+    return;
+  }
+  container.innerHTML = messages.map(m => renderMessage(m.role, m.content)).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function renderMessage(role, content) {
+  const isAI = role === 'assistant';
+  const formatted = formatMsg(content);
+  return `<div class="msg">
+    <div class="msg-avatar ${isAI?'ai':'user'}">${isAI?'AI':'TY'}</div>
+    <div class="msg-body">
+      <div class="msg-name ${isAI?'ai-name':'user-name'}">${isAI?'PluginForge AI':'Ty'}</div>
+      <div class="msg-text">${formatted}</div>
+      ${isAI?`<div class="msg-actions"><button class="msg-action-btn" onclick="copyMsgText(this)">📋 Kopiuj</button></div>`:''}
+    </div>
+  </div>`;
+}
+
+function formatMsg(text) {
+  return escHtml(text)
+    .replace(/```java\n?([\s\S]*?)```/g, (_, c) => `<pre><code>${c}</code></pre>`)
+    .replace(/```([\s\S]*?)```/g, (_, c) => `<pre><code>${c}</code></pre>`)
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function copyMsgText(btn) {
+  const text = btn.closest('.msg-body').querySelector('.msg-text').textContent;
+  navigator.clipboard.writeText(text).then(() => toast('Skopiowano!'));
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+}
+
+function chatKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+}
+
+function clearChat() {
+  if (!currentChatId) return;
+  const chat = chats.find(c => c.id === currentChatId);
+  if (chat) { chat.messages = []; saveChats(); renderChatMessages([]); }
+}
+
+function getModeSystemPrompt(mode) {
+  const prompts = {
+    general: 'Jesteś pomocnym asystentem dla developerów pluginów Minecraft. Odpowiadaj po polsku. Pomagaj z pytaniami o Java, Spigot/Paper API i tworzenie pluginów.',
+    plugin: 'Jesteś ekspertem w tworzeniu pluginów Minecraft w Java dla platform Spigot i Paper. Odpowiadaj po polsku. Gdy piszesz kod, używaj aktualnych API. Daj kompletne, działające przykłady kodu. Wyjaśniaj każdy fragment kodu.',
+    debug: 'Jesteś debuggerem Java dla pluginów Minecraft. Odpowiadaj po polsku. Analizuj błędy, stack traces i kod, wskazuj problemy i sugeruj poprawki. Zawsze wyjaśniaj dlaczego błąd wystąpił.',
+    explain: 'Jesteś nauczycielem Java i Spigot API. Odpowiadaj po polsku. Wyjaśniaj kod krok po kroku, w prosty i zrozumiały sposób. Używaj analogii i przykładów.',
+  };
+  return prompts[mode] || prompts.general;
+}
+
+async function sendChatMessage() {
+  if (isChatGenerating) return;
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!currentSession) { openLoginModal(); toast('Zaloguj się żeby używać chatu!', 'error'); return; }
+
+  if (!currentChatId) { newChat(); }
+
+  const chat = chats.find(c => c.id === currentChatId);
+  chat.messages.push({ role: 'user', content: text });
+  if (chat.title === 'Nowy czat') {
+    chat.title = text.slice(0, 40) + (text.length > 40 ? '...' : '');
+    document.getElementById('chatTitle').textContent = chat.title;
+  }
+  input.value = ''; input.style.height = 'auto';
+  renderChatMessages(chat.messages);
+
+  // Add AI loading message
+  const container = document.getElementById('chatMessages');
+  const loadDiv = document.createElement('div');
+  loadDiv.className = 'msg'; loadDiv.id = 'loadingMsg';
+  loadDiv.innerHTML = `<div class="msg-avatar ai">AI</div><div class="msg-body"><div class="msg-name ai-name">PluginForge AI</div><div class="msg-text"><span class="stream-cursor"></span></div></div>`;
+  container.appendChild(loadDiv);
+  container.scrollTop = container.scrollHeight;
+
+  isChatGenerating = true;
+  document.getElementById('chatSendBtn').disabled = true;
+  document.getElementById('chatStatusDot').className = 'status-indicator active';
+
+  const mode = document.getElementById('chatMode').value;
+  const system = getModeSystemPrompt(mode);
+
+  let aiResponse = '';
+  try {
+    const apiMessages = chat.messages.map(m => ({ role: m.role, content: m.content }));
+    const res = await callAIStream(apiMessages, system, 2048);
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    const msgTextEl = loadDiv.querySelector('.msg-text');
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(data);
+          // Anthropic
+          if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
+            aiResponse += parsed.delta.text;
+            msgTextEl.innerHTML = formatMsg(aiResponse) + '<span class="stream-cursor"></span>';
+            container.scrollTop = container.scrollHeight;
+          }
+          // OpenAI
+          if (parsed.choices?.[0]?.delta?.content) {
+            aiResponse += parsed.choices[0].delta.content;
+            msgTextEl.innerHTML = formatMsg(aiResponse) + '<span class="stream-cursor"></span>';
+            container.scrollTop = container.scrollHeight;
+          }
+        } catch {}
+      }
+    }
+
+    loadDiv.querySelector('.stream-cursor')?.remove();
+    chat.messages.push({ role: 'assistant', content: aiResponse });
+    saveChats();
+    renderChatList();
+
+  } catch (err) {
+    loadDiv.querySelector('.msg-text').textContent = 'Błąd: ' + err.message;
+    toast(err.message, 'error');
+  } finally {
+    isChatGenerating = false;
+    document.getElementById('chatSendBtn').disabled = false;
+    document.getElementById('chatStatusDot').className = 'status-indicator active';
+  }
+}
+</script>
+</body>
+</html>
